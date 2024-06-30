@@ -321,6 +321,93 @@ void DARegression::calcInputFeatures(word modelName)
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
+        //包淳新加的
+        else if (inputName == "chi")
+        {
+            // the chi() function from SA
+            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
+            volScalarField nu = daModel_.getDATurbulenceModel().nu();
+            forAll(inputFields[idxI], cellI)
+            {
+                inputFields[idxI][cellI] = (nuTilda[cellI] / nu[cellI] + inputShift_[idxI]) * inputScale_[idxI];
+            }
+        }
+        else if (inputName == "lambda1")
+        {
+            // lambda_1
+            const volScalarField& y = mesh_.thisDb().lookupObject<volScalarField>("yWall");
+            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
+            const tmp<volTensorField> tgradU(fvc::grad(U));
+            const volTensorField& gradU = tgradU();
+            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
+            volScalarField nu = daModel_.getDATurbulenceModel().nu();
+            volSymmTensorField S(symm(gradU));
+            volSymmTensorField SRM(S*y*y/(nu+nuTilda));
+            volScalarField lambda1 = tr(SRM&SRM);
+            scalar val = 0;
+            forAll(inputFields[idxI], cellI)
+            {
+                val = lambda1[cellI];
+                inputFields[idxI][cellI] = (val + inputShift_[idxI]) * inputScale_[idxI];
+            }
+        }
+        else if (inputName == "lambda2")
+        {
+            // lambda_1
+            const volScalarField& y = mesh_.thisDb().lookupObject<volScalarField>("yWall");
+            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
+            const tmp<volTensorField> tgradU(fvc::grad(U));
+            const volTensorField& gradU = tgradU();
+            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
+            volScalarField nu = daModel_.getDATurbulenceModel().nu();
+            volTensorField W(skew(gradU));
+            volTensorField OMG(W*y*y/(nu+nuTilda));
+            volScalarField lambda2 = tr(OMG&OMG);
+            scalar val = 0;
+            forAll(inputFields[idxI], cellI)
+            {
+                val = lambda2[cellI];
+                inputFields[idxI][cellI] = (val + inputShift_[idxI]) * inputScale_[idxI];
+            }
+        }
+        //包淳第二次添加的
+        else if (inputName == "Spg")
+        {
+            // streamline pressure gradient
+            const volScalarField& p = mesh_.thisDb().lookupObject<volScalarField>("p");
+            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
+            volVectorField pGrad("gradP", fvc::grad(p));
+
+            scalar val = 0;
+            forAll(inputFields[idxI], cellI)
+            {
+                val = acos(mag(U[cellI] & pGrad[cellI]) / (mag(U[cellI] & U[cellI]) + mag(pGrad[cellI] & pGrad[cellI]) + 1e-16));
+                inputFields[idxI][cellI] = (val + inputShift_[idxI]) * inputScale_[idxI];
+            }
+        }
+        else if (inputName == "Tvr")
+        {
+            // turbulence viscosity ratio
+            const volScalarField& nut = mesh_.thisDb().lookupObject<volScalarField>("nut");
+            volScalarField nu = daModel_.getDATurbulenceModel().nu();
+            forAll(inputFields[idxI], cellI)
+            {
+                inputFields[idxI][cellI] = (nut[cellI] / (100*nu[cellI]+nut[cellI]) + inputShift_[idxI]) * inputScale_[idxI];
+            }
+        }
+        else if (inputName == "Qcri")
+        {
+            // Q criterion
+            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
+            const tmp<volTensorField> tgradU(fvc::grad(U));
+            const volTensorField& gradU = tgradU();
+            volScalarField magSqrOmega = magSqr(skew(gradU));
+            volScalarField magSqrS = magSqr(symm(gradU));
+            forAll(inputFields[idxI], cellI)
+            {
+                inputFields[idxI][cellI] = ((magSqrS[cellI]-magSqrOmega[cellI]) / (magSqrS[cellI] + magSqrOmega[cellI] + 1e-16) + inputShift_[idxI]) * inputScale_[idxI];
+            }
+        }
         else
         {
             FatalErrorIn("") << "inputName: " << inputName << " not supported. Options are: VoS, PoD, chiSA, pGradStream, PSoSS, SCurv, UOrth, KoU2, ReWall, CoP, TauoK" << abort(FatalError);
