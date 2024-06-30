@@ -327,10 +327,11 @@ void DARegression::calcInputFeatures(word modelName)
             // the chi() function from SA
             const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
             volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            forAll(inputFields[idxI], cellI)
+            forAll(features_[modelName][idxI], cellI)
             {
                 features_[modelName][idxI][cellI] = (nuTilda[cellI] / nu[cellI] + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
+            features_[modelName][idxI].correctBoundaryConditions();
         }
         else if (inputName == "lambda1")
         {
@@ -345,11 +346,12 @@ void DARegression::calcInputFeatures(word modelName)
             volSymmTensorField SRM(S*y*y/(nu+nuTilda));
             volScalarField lambda1 = tr(SRM&SRM);
             scalar val = 0;
-            forAll(inputFields[idxI], cellI)
+            forAll(features_[modelName][idxI], cellI)
             {
                 val = lambda1[cellI];
                 features_[modelName][idxI][cellI] = (val + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
+            features_[modelName][idxI].correctBoundaryConditions();
         }
         else if (inputName == "lambda2")
         {
@@ -364,11 +366,12 @@ void DARegression::calcInputFeatures(word modelName)
             volTensorField OMG(W*y*y/(nu+nuTilda));
             volScalarField lambda2 = tr(OMG&OMG);
             scalar val = 0;
-            forAll(inputFields[idxI], cellI)
+            forAll(features_[modelName][idxI], cellI)
             {
                 val = lambda2[cellI];
                 features_[modelName][idxI][cellI] = (val + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
+            features_[modelName][idxI].correctBoundaryConditions();
         }
         //包淳第二次添加的
         else if (inputName == "Spg")
@@ -379,21 +382,23 @@ void DARegression::calcInputFeatures(word modelName)
             volVectorField pGrad("gradP", fvc::grad(p));
 
             scalar val = 0;
-            forAll(inputFields[idxI], cellI)
+            forAll(features_[modelName][idxI], cellI)
             {
                 val = acos(mag(U[cellI] & pGrad[cellI]) / (mag(U[cellI] & U[cellI]) + mag(pGrad[cellI] & pGrad[cellI]) + 1e-16));
                 features_[modelName][idxI][cellI] = (val + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
+            features_[modelName][idxI].correctBoundaryConditions();
         }
         else if (inputName == "Tvr")
         {
             // turbulence viscosity ratio
             const volScalarField& nut = mesh_.thisDb().lookupObject<volScalarField>("nut");
             volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            forAll(inputFields[idxI], cellI)
+            forAll(features_[modelName][idxI], cellI)
             {
                 features_[modelName][idxI][cellI] = (nut[cellI] / (100*nu[cellI]+nut[cellI]) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
+            features_[modelName][idxI].correctBoundaryConditions();
         }
         else if (inputName == "Qcri")
         {
@@ -403,10 +408,11 @@ void DARegression::calcInputFeatures(word modelName)
             const volTensorField& gradU = tgradU();
             volScalarField magSqrOmega = magSqr(skew(gradU));
             volScalarField magSqrS = magSqr(symm(gradU));
-            forAll(inputFields[idxI], cellI)
+            forAll(features_[modelName][idxI], cellI)
             {
                 features_[modelName][idxI][cellI] = ((magSqrS[cellI]-magSqrOmega[cellI]) / (magSqrS[cellI] + magSqrOmega[cellI] + 1e-16) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
+            features_[modelName][idxI].correctBoundaryConditions();
         }
         else
         {
