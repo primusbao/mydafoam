@@ -46,17 +46,33 @@ protected:
     /// turbulence variable for SA
     volScalarField nuTilda_;
 
-    volScalarField betaFieldInversion_;
-
     volVectorField UData_;
 
     volScalarField surfaceFriction_;
 
-    volScalarField surfaceFrictionData_; 
+    volScalarField surfaceFrictionData_;
+
+    volScalarField wallsquare_; 
+
+    volScalarField volume_;  
 
     volScalarField pData_; 
 
-    volScalarField USingleComponentData_; 
+    volScalarField USingleComponentData_;
+
+    volScalarField fw_;
+
+    volScalarField r_;
+
+    volScalarField Cb1_;
+
+    volScalarField sigmaNut_;
+
+    volScalarField Cs1_;
+
+    volScalarField Cs2_;
+
+    volScalarField Cw1_; 
 
     //- Wall distance
     //  Note: different to wall distance in parent RASModel
