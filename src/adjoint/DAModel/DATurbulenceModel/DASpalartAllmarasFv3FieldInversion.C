@@ -44,24 +44,14 @@ DASpalartAllmarasFv3FieldInversion::DASpalartAllmarasFv3FieldInversion(
     const DAOption& daOption)
     : DATurbulenceModel(modelType, mesh, daOption),
       // SA parameters
-      sigmaNut_(dimensioned<scalar>::lookupOrAddToDict(
-          "sigmaNut",
-          this->coeffDict_,
-          0.66666)),
       kappa_(dimensioned<scalar>::lookupOrAddToDict(
           "kappa",
           this->coeffDict_,
           0.41)),
-
-      Cb1_(dimensioned<scalar>::lookupOrAddToDict(
-          "Cb1",
-          this->coeffDict_,
-          0.1355)),
       Cb2_(dimensioned<scalar>::lookupOrAddToDict(
           "Cb2",
           this->coeffDict_,
           0.622)),
-      Cw1_(Cb1_ / sqr(kappa_) + (1.0 + Cb2_) / sigmaNut_),
       Cw2_(dimensioned<scalar>::lookupOrAddToDict(
           "Cw2",
           this->coeffDict_,
@@ -78,6 +68,10 @@ DASpalartAllmarasFv3FieldInversion::DASpalartAllmarasFv3FieldInversion(
           "Cv2",
           this->coeffDict_,
           5.0)),
+      Cw0_(dimensioned<scalar>::lookupOrAddToDict(
+          "Cw0",
+          this->coeffDict_,
+          0.4)),
       // Augmented variables
       nuTilda_(const_cast<volScalarField&>(
           mesh.thisDb().lookupObject<volScalarField>("nuTilda"))),
@@ -104,18 +98,35 @@ DASpalartAllmarasFv3FieldInversion::DASpalartAllmarasFv3FieldInversion(
               IOobject::NO_READ,
               IOobject::NO_WRITE),
           nuTildaRes_),
-      betaFieldInversion_(const_cast<volScalarField&>(
-          mesh.thisDb().lookupObject<volScalarField>("betaFieldInversion"))),
+      Cb1_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("Cb1"))),
+      sigmaNut_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("sigmaNut"))),      
+      //Cw1_(Cb1_ / sqr(kappa_) + (1.0 + Cb2_) / sigmaNut_),
+      Cw1_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("Cw1"))),
+      Cs1_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("Cs1"))),
+      Cs2_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("Cs2"))),
       UData_(const_cast<volVectorField&>(
           mesh.thisDb().lookupObject<volVectorField>("UData"))),
       surfaceFriction_(const_cast<volScalarField&>(
           mesh.thisDb().lookupObject<volScalarField>("surfaceFriction"))),
       surfaceFrictionData_(const_cast<volScalarField&>(
           mesh.thisDb().lookupObject<volScalarField>("surfaceFrictionData"))),
+      wallsquare_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("wallsquare"))),
+      volume_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("volume"))),
       pData_(const_cast<volScalarField&>(
           mesh.thisDb().lookupObject<volScalarField>("pData"))),
       USingleComponentData_(const_cast<volScalarField&>(
           mesh.thisDb().lookupObject<volScalarField>("USingleComponentData"))),
+      r_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("r"))),
+      fw_(const_cast<volScalarField&>(
+          mesh.thisDb().lookupObject<volScalarField>("fw"))),
       y_(mesh.thisDb().lookupObject<volScalarField>("yWall"))
 {
 }
@@ -131,15 +142,14 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::chi() const
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fv1(
     const volScalarField& chi) const
 {
-    const volScalarField chi3(pow3(chi));
-    return chi3 / (chi3 + pow3(Cv1_));
+    return pow( scalar(1.0) - exp(scalar(-1.0)*chi/kappa_.value()/scalar(17.0)),2);
 }
 
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fv2(
     const volScalarField& chi,
     const volScalarField& fv1) const
 {
-    return 1.0 / pow3(scalar(1) + chi / Cv2_);
+    return scalar(1) - chi/(scalar(1) + chi*fv1);
 }
 
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fv3(
@@ -158,6 +168,8 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fv3(
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
     const volScalarField& Stilda) const
 {
+    //Info << "begin fw"<< nl;
+
     volScalarField r(
         min(
             nuTilda_
@@ -168,9 +180,111 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
             scalar(10.0)));
     r.boundaryFieldRef() == 0.0;
 
-    const volScalarField g(r + Cw2_ * (pow6(r) - r));
+    const volScalarField Cw1(Cb1_/sqr(kappa_) + (scalar(1) + Cb2_)/sigmaNut_);
 
-    return g * pow((1.0 + pow6(Cw3_)) / (pow6(g) + pow6(Cw3_)), 1.0 / 6.0);
+    const volScalarField g(r + Cw2_*(pow6(r) - r));
+
+    const volScalarField r2(pow(r,2));
+
+    const volScalarField F0(
+        0.540*r - 0.130*r2
+    );
+
+    const volScalarField F1(
+        -0.213 + 0.623*r
+    );
+
+    const volScalarField F2(
+        0.049 - 0.365*r + 0.316*r2
+    );
+    
+    scalar dC2;
+
+    scalar cutX;
+    scalar F0X;
+    scalar F1X;
+    scalar F2X;
+    scalar dF0;
+    scalar dF1;
+    scalar dF2;
+    scalar dFw;
+    //Info << "begin fw1.0"<< nl;
+    
+	const volScalarField C1(Cb1_/kappa_/kappa_/Cw1);
+    const volScalarField C2(1.0/sigmaNut_/Cw1);
+    const volScalarField C3((1.0+ Cb2_)/sigmaNut_/Cw1);
+
+    //Info << "begin fw1.0.1"<< nl;
+
+    const volScalarField FwUp(C1/max(r,dimensionedScalar("SMALL", r.dimensions(), SMALL))+C2*F2/F0/F0+C3*pow(F1/F0,2));
+
+    //Info << "begin fw1.1"<< nl;
+   
+    cutX = Cw0_.value();
+
+    F0X = 0.540*cutX - 0.130*pow(cutX,2);
+
+    F1X = -0.213 + 0.623*cutX;
+
+    F2X = 0.049 - 0.365*cutX + 0.316*pow(cutX,2);
+
+    //Info << "begin fw1.2"<< nl;
+    
+	const volScalarField FwX(C1/cutX + C2*F2X/F0X/F0X + C3*pow(F1X/F0X,2));
+
+    //Info << "begin fw1.3"<< nl;
+
+	// //C0 continue
+	const volScalarField dC1(FwX/cutX);
+	dC2 = 0.0;
+
+    // Info << "dC1 = "<<dC1<<", dC2 = "<<dC2<<nl;
+    // Info << "cutx = "<<cutX<<", FwX = "<<FwX<<nl;
+
+    const volScalarField FwDown(dC1*r + dC2*r*r);
+
+
+    volScalarField fwv(g);
+
+    forAll(fwv,k)
+    {
+        
+        if (r[k] <= 1.0 && r[k]>=cutX){
+            fwv[k] = FwUp[k];
+        }
+        else if (r[k]>=0.0 && r[k]<cutX)
+        {
+            fwv[k] = FwDown[k];
+        }
+        else if (r[k]>1.0)
+        {
+            fwv[k] = (pow(10,2.0*Cs2_[k]-1.0)-1.0)*tanh((r[k]-1.0)*5.0/pow(10,4.0*Cs1_[k]-1.0)) + 1.0;
+        }
+        else if (r[k]<0.0)
+        {
+        }
+       //r_[k] = r[k];
+	   //fw_[k] = fwv[k];
+    }
+
+    // tmp<volScalarField> fwvv
+    // (
+    //     new volScalarField
+    //     (   
+    //         IOobject
+    //         (   
+    //             "fwvv",
+    //             this->runTime_.constant(),
+    //             this->mesh_,
+    //             IOobject::NO_READ,
+    //             IOobject::NO_WRITE
+    //         ),  
+    //         fwv
+    //     )
+    // );
+
+    return fwv * 1.0;
+    //return g * pow((1.0 + pow6(Cw3_)) / (pow6(g) + pow6(Cw3_)), 1.0 / 6.0);
 }
 
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::DnuTildaEff() const
@@ -443,9 +557,10 @@ void DASpalartAllmarasFv3FieldInversion::calcResiduals(const dictionary& options
 
     const volScalarField chi(this->chi());
     const volScalarField fv1(this->fv1(chi));
+    volScalarField Cw1(Cb1_/sqr(kappa_) + (scalar(1) + Cb2_)/sigmaNut_);
 
     const volScalarField Stilda(
-        this->fv3(chi, fv1) * ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
+        ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
         + this->fv2(chi, fv1) * nuTilda_ / sqr(kappa_ * y_));
 
     tmp<fvScalarMatrix> nuTildaEqn(
@@ -453,8 +568,8 @@ void DASpalartAllmarasFv3FieldInversion::calcResiduals(const dictionary& options
             + fvm::div(phaseRhoPhi_, nuTilda_, divNuTildaScheme)
             - fvm::laplacian(phase_ * rho_ * DnuTildaEff(), nuTilda_)
             - Cb2_ / sigmaNut_ * phase_ * rho_ * magSqr(fvc::grad(nuTilda_))
-        == Cb1_ * phase_ * rho_ * Stilda * nuTilda_ * betaFieldInversion_
-            - fvm::Sp(Cw1_ * phase_ * rho_ * fw(Stilda) * nuTilda_ / sqr(y_), nuTilda_));
+        == Cb1_ * phase_ * rho_ * Stilda * nuTilda_ 
+            - fvm::Sp(Cw1 * phase_ * rho_ * fw(Stilda) * nuTilda_  / sqr(y_), nuTilda_));
 
     nuTildaEqn.ref().relax();
 
@@ -498,7 +613,7 @@ void DASpalartAllmarasFv3FieldInversion::getTurbProdTerm(volScalarField& prodTer
     const volScalarField fv1(this->fv1(chi));
 
     const volScalarField Stilda(
-        this->fv3(chi, fv1) * ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
+         ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
         + this->fv2(chi, fv1) * nuTilda_ / sqr(kappa_ * y_));
     
     volScalarField SAProdTerm = Cb1_ * phase_ * rho_ * Stilda * nuTilda_;
