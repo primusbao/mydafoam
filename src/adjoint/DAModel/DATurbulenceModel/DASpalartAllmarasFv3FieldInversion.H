@@ -54,15 +54,13 @@ class DASpalartAllmarasFv3FieldInversion
 protected:
     /// \name SA parameters
     //@{
-    dimensionedScalar sigmaNut_;
     dimensionedScalar kappa_;
-    dimensionedScalar Cb1_;
     dimensionedScalar Cb2_;
-    dimensionedScalar Cw1_;
     dimensionedScalar Cw2_;
     dimensionedScalar Cw3_;
     dimensionedScalar Cv1_;
     dimensionedScalar Cv2_;
+    dimensionedScalar Cw0_;
     //@}
 
     /// \name SA functions
@@ -88,10 +86,25 @@ protected:
     volScalarField& nuTilda_;
     volScalarField nuTildaRes_;
     volScalarField nuTildaResPartDeriv_;
+
+    volScalarField r_;
+    volScalarField fw_;
     //@}
 
-    /// A beta field multiplying to the production term
-    volScalarField& betaFieldInversion_; 
+    /// A coefficient Field
+    volScalarField& Cb1_;
+
+    /// A coefficient Field
+    volScalarField& sigmaNut_;
+
+    /// A coefficient Field
+    volScalarField& Cw1_;
+
+    /// A coefficient Field
+    volScalarField& Cs1_; 
+
+    /// A coefficient Field
+    volScalarField& Cs2_;    
 
     /// reference velocity field
     volVectorField UData_; 
@@ -100,7 +113,13 @@ protected:
     volScalarField surfaceFriction_;
 
     /// the reference field for surfaceFriction
-    volScalarField surfaceFrictionData_; 
+    volScalarField surfaceFrictionData_;
+
+    /// wall square
+    volScalarField wallsquare_;
+
+    /// volume
+    volScalarField volume_;  
 
     /// the reference field for pressure
     volScalarField pData_; 
@@ -113,6 +132,8 @@ protected:
 
     /// whether to solve for turb states
     label solveTurbState_ = 0;
+
+    
 
 public:
     TypeName("SpalartAllmarasFv3FieldInversion");
