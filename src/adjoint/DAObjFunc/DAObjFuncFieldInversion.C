@@ -122,7 +122,7 @@ void DAObjFuncFieldInversion::calcObjFunc(
         forAll(objFuncCellSources, idxI)
         {
             const label& cellI = objFuncCellSources[idxI];
-            objFuncCellValues[idxI] = scale_ * (sqr(betaFieldInversion_[cellI] - 1.0));
+            objFuncCellValues[idxI] = scale_ * (sqr(betaFieldInversion_[cellI]-1.0));
             objFuncValue += objFuncCellValues[idxI];
         }
         // need to reduce the sum of all objectives across all processors
@@ -133,6 +133,119 @@ void DAObjFuncFieldInversion::calcObjFunc(
             objFuncValue = weight_ * objFuncValue;
         }
     }
+
+    else if (data_ == "theta")
+    {
+        stateName_ = "thetaFieldInversion";
+        const volScalarField thetaFieldInversion_ = db.lookupObject<volScalarField>(stateName_);
+        
+        forAll(objFuncCellSources, idxI)
+        {
+            const label& cellI = objFuncCellSources[idxI];
+            objFuncCellValues[idxI] = scale_ * (sqr(thetaFieldInversion_[cellI]-1.0));
+            objFuncValue += objFuncCellValues[idxI];
+        }
+        // need to reduce the sum of all objectives across all processors
+        reduce(objFuncValue, sumOp<scalar>());
+
+        if (weightedSum_ == true)
+        {
+            objFuncValue = weight_ * objFuncValue;
+        }
+    }
+    
+    else if (data_ == "Cb1")
+    {
+        stateName_ = "Cb1";
+        const volScalarField Cb1_ = db.lookupObject<volScalarField>(stateName_);
+        word volumeName_ = "volume";
+        const volScalarField volume_ = db.lookupObject<volScalarField>(volumeName_);
+        scalar standard;
+        objFuncDict_.readEntry<scalar>("standard", standard);
+        forAll(objFuncCellSources, idxI)
+        {
+            const label& cellI = objFuncCellSources[idxI];
+            objFuncCellValues[idxI] = scale_ * (sqr(Cb1_[cellI]-standard))*volume_[cellI];
+            objFuncValue += objFuncCellValues[idxI];
+        }
+        // need to reduce the sum of all objectives across all processors
+        reduce(objFuncValue, sumOp<scalar>());
+
+        if (weightedSum_ == true)
+        {
+            objFuncValue = weight_ * objFuncValue;
+        }
+    }
+
+    else if (data_ == "sigmaNut")
+    {
+        stateName_ = "sigmaNut";
+        const volScalarField sigmaNut_ = db.lookupObject<volScalarField>(stateName_);
+        word volumeName_ = "volume";
+        const volScalarField volume_ = db.lookupObject<volScalarField>(volumeName_);
+        scalar standard;
+        objFuncDict_.readEntry<scalar>("standard", standard);
+        forAll(objFuncCellSources, idxI)
+        {
+            const label& cellI = objFuncCellSources[idxI];
+            objFuncCellValues[idxI] = scale_ * (sqr(sigmaNut_[cellI]-standard))*volume_[cellI];
+            objFuncValue += objFuncCellValues[idxI];
+        }
+        // need to reduce the sum of all objectives across all processors
+        reduce(objFuncValue, sumOp<scalar>());
+
+        if (weightedSum_ == true)
+        {
+            objFuncValue = weight_ * objFuncValue;
+        }
+    }
+
+    else if (data_ == "Cs1")
+    {
+        stateName_ = "Cs1";
+        const volScalarField Cs1_ = db.lookupObject<volScalarField>(stateName_);
+        word volumeName_ = "volume";
+        const volScalarField volume_ = db.lookupObject<volScalarField>(volumeName_);
+        scalar standard;
+        objFuncDict_.readEntry<scalar>("standard", standard);
+        forAll(objFuncCellSources, idxI)
+        {
+            const label& cellI = objFuncCellSources[idxI];
+            objFuncCellValues[idxI] = scale_ * (sqr(Cs1_[cellI]-standard))*volume_[cellI];
+            objFuncValue += objFuncCellValues[idxI];
+        }
+        // need to reduce the sum of all objectives across all processors
+        reduce(objFuncValue, sumOp<scalar>());
+
+        if (weightedSum_ == true)
+        {
+            objFuncValue = weight_ * objFuncValue;
+        }
+    }
+
+    else if (data_ == "Cs2")
+    {
+        stateName_ = "Cs2";
+        const volScalarField Cs2_ = db.lookupObject<volScalarField>(stateName_);
+        word volumeName_ = "volume";
+        const volScalarField volume_ = db.lookupObject<volScalarField>(volumeName_);
+        scalar standard;
+        objFuncDict_.readEntry<scalar>("standard", standard);
+        forAll(objFuncCellSources, idxI)
+        {
+            const label& cellI = objFuncCellSources[idxI];
+            objFuncCellValues[idxI] = scale_ * (sqr(Cs2_[cellI]-standard))*volume_[cellI];
+            objFuncValue += objFuncCellValues[idxI];
+        }
+        // need to reduce the sum of all objectives across all processors
+        reduce(objFuncValue, sumOp<scalar>());
+
+        if (weightedSum_ == true)
+        {
+            objFuncValue = weight_ * objFuncValue;
+        }
+    }
+    
     else if (data_ == "UData")
     {
         stateName_ = "U";
@@ -284,6 +397,8 @@ void DAObjFuncFieldInversion::calcObjFunc(
     {
         stateName_ = "surfaceFriction";
         stateRefName_ = data_;
+        word squareName_;
+        squareName_= "wallsquare";
         wordList patchNames_; 
         objFuncDict_.readEntry<wordList>("patchNames", patchNames_);
 
@@ -296,6 +411,7 @@ void DAObjFuncFieldInversion::calcObjFunc(
 
         volScalarField& surfaceFriction = const_cast<volScalarField&>(db.lookupObject<volScalarField>(stateName_));
         const volScalarField surfaceFrictionRef = db.lookupObject<volScalarField>(stateRefName_);
+        const volScalarField wallsquare = db.lookupObject<volScalarField>(squareName_);
 
         // ingredients for the computation
         tmp<volSymmTensorField> Reff = daTurb_.devRhoReff();
@@ -324,10 +440,10 @@ void DAObjFuncFieldInversion::calcObjFunc(
 
                 // The following will allow to only use the Cf data at certain cells.
                 // If you want to exclude cells, then given them a cell value of 1e16.
-                if (bSurfaceFrictionRef < 1e16)
+                if (bSurfaceFrictionRef < 1e16 && bSurfaceFrictionRef > -1e4 )
                 {
                     // calculate the objective function
-                    objFuncValue += sqr(bSurfaceFriction - bSurfaceFrictionRef);
+                    objFuncValue += sqr(bSurfaceFriction - bSurfaceFrictionRef)*wallsquare.boundaryField()[patchI][faceI];
                 }
             }
         }
@@ -406,8 +522,8 @@ void DAObjFuncFieldInversion::calcObjFunc(
         literature.)
         */
 
-        stateName_ = "surfaceFriction_";
-        stateRefName_ = data_; 
+        stateName_ = "surfaceFriction";
+        stateRefName_ = "surfaceFrictionData"; 
 
         wordList patchNames_; 
         objFuncDict_.readEntry<wordList>("patchNames", patchNames_);
@@ -417,9 +533,8 @@ void DAObjFuncFieldInversion::calcObjFunc(
         const volScalarField& surfaceFrictionRef = db.lookupObject<volScalarField>(stateRefName_);
 
         // ingredients for surface friction computation
-        const volVectorField& U = db.lookupObject<volVectorField>("U");
-        tmp<volTensorField> gradU = fvc::grad(U);
-        const volTensorField::Boundary& bGradU = gradU().boundaryField();
+        tmp<volSymmTensorField> Reff = daTurb_.devRhoReff();
+        volSymmTensorField::Boundary bReff = Reff().boundaryField();
 
         const surfaceVectorField::Boundary& Sfp = mesh_.Sf().boundaryField();
         const surfaceScalarField::Boundary& magSfp = mesh_.magSf().boundaryField();
@@ -437,8 +552,8 @@ void DAObjFuncFieldInversion::calcObjFunc(
                 // NOTE: make this more general
                 vector tangent(normal.y(), -normal.x(), 0.0);
 
-                // velocity gradient at wall
-                tensor fGradU = bGradU[patchI][faceI];
+                // wall shear stress
+                vector wss = normal & bReff[patchI][faceI];
 
                 /* need to get transpose of fGradU as it is stored in the following form:
                         fGradU = [ XX   XY  XZ  YX  YY  YZ  ZX  ZY  ZZ ]  (see slide 3 of: https://tinyurl.com/5ops2f5h)
@@ -447,7 +562,6 @@ void DAObjFuncFieldInversion::calcObjFunc(
                     where XX = partial(u1)/partial(x1), YX = partial(u2)/partial(x1) and so on.
                         => grad(U) = transpose(fGradU)
                 */
-                tensor fGradUT = fGradU.T();
 
                 /* compute the surface friction assuming incompressible flow and no wall functions! Add run time warning message 
                 to reflect this later.
@@ -457,15 +571,17 @@ void DAObjFuncFieldInversion::calcObjFunc(
                 incorporate rho, mu, and dynamic pressure in scale_ as follows,
                         scale_ = nu / dynPressure,
                         => Cf = scale_ * tangent . (grad(U) . normal) */
-                scalar bSurfaceFriction = scale_ * (tangent & (fGradUT & normal));
+                scalar bSurfaceFriction = scale_ * (tangent & wss);
 
                 surfaceFriction.boundaryFieldRef()[patchI][faceI] = bSurfaceFriction;
+
+                //Info << "bSurfaceFriction = "<<bSurfaceFriction<<nl;
 
                 // calculate the objective function
                 // extract the reference surface friction at the boundary
                 scalar bSurfaceFrictionRef = surfaceFrictionRef.boundaryField()[patchI][faceI];
 
-                if (bSurfaceFrictionRef < 1e16)
+                if (bSurfaceFrictionRef < 1e16 && bSurfaceFrictionRef>-9999 )
                 {
                     // calculate the objective function
                     objFuncValue += sqr(bSurfaceFriction - bSurfaceFrictionRef);
