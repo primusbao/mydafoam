@@ -340,6 +340,7 @@ void DARegression::calcInputFeatures(word modelName)
         else if (inputName == "Tvr")
         {
             // turbulence viscosity ratio
+#ifndef SolidDASolver
             const volScalarField& nut = mesh_.thisDb().lookupObject<volScalarField>("nut");
             volScalarField nu = daModel_.getDATurbulenceModel().nu();
             forAll(features_[modelName][idxI], cellI)
@@ -347,6 +348,7 @@ void DARegression::calcInputFeatures(word modelName)
                 features_[modelName][idxI][cellI] = (nut[cellI] / (100*nu[cellI]+nut[cellI]) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
             features_[modelName][idxI].correctBoundaryConditions();
+#endif
         }
         else
         {
