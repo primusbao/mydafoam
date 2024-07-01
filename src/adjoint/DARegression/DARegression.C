@@ -337,31 +337,6 @@ void DARegression::calcInputFeatures(word modelName)
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
-        else if (inputName == "Tvr")
-        {
-            // turbulence viscosity ratio
-            const volScalarField& nut = mesh_.thisDb().lookupObject<volScalarField>("nut");
-            volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            forAll(features_[modelName][idxI], cellI)
-            {
-                features_[modelName][idxI][cellI] = (nut[cellI] / (100*nu[cellI]+nut[cellI]) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
-        else if (inputName == "Qcri")
-        {
-            // Q criterion
-            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
-            const tmp<volTensorField> tgradU(fvc::grad(U));
-            const volTensorField& gradU = tgradU();
-            volScalarField magSqrOmega = magSqr(skew(gradU));
-            volScalarField magSqrS = magSqr(symm(gradU));
-            forAll(features_[modelName][idxI], cellI)
-            {
-                features_[modelName][idxI][cellI] = ((magSqrS[cellI]-magSqrOmega[cellI]) / (magSqrS[cellI] + magSqrOmega[cellI] + 1e-16) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
         else
         {
             FatalErrorIn("") << "inputName: " << inputName << " not supported. Options are: VoS, PoD, chiSA, pGradStream, PSoSS, SCurv, UOrth, KoU2, ReWall, CoP, TauoK" << abort(FatalError);
