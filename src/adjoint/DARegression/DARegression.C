@@ -321,58 +321,6 @@ void DARegression::calcInputFeatures(word modelName)
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
-        //包淳新加的
-        else if (inputName == "chi")
-        {
-            // the chi() function from SA
-            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
-            volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            forAll(features_[modelName][idxI], cellI)
-            {
-                features_[modelName][idxI][cellI] = (nuTilda[cellI] / nu[cellI] + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
-        else if (inputName == "lambda1")
-        {
-            // lambda_1
-            const volScalarField& y = mesh_.thisDb().lookupObject<volScalarField>("yWall");
-            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
-            const tmp<volTensorField> tgradU(fvc::grad(U));
-            const volTensorField& gradU = tgradU();
-            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
-            volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            volSymmTensorField S(symm(gradU));
-            volSymmTensorField SRM(S*y*y/(nu+nuTilda));
-            volScalarField lambda1 = tr(SRM&SRM);
-            scalar val = 0;
-            forAll(features_[modelName][idxI], cellI)
-            {
-                val = lambda1[cellI];
-                features_[modelName][idxI][cellI] = (val + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
-        else if (inputName == "lambda2")
-        {
-            // lambda_1
-            const volScalarField& y = mesh_.thisDb().lookupObject<volScalarField>("yWall");
-            const volVectorField& U = mesh_.thisDb().lookupObject<volVectorField>("U");
-            const tmp<volTensorField> tgradU(fvc::grad(U));
-            const volTensorField& gradU = tgradU();
-            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
-            volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            volTensorField W(skew(gradU));
-            volTensorField OMG(W*y*y/(nu+nuTilda));
-            volScalarField lambda2 = tr(OMG&OMG);
-            scalar val = 0;
-            forAll(features_[modelName][idxI], cellI)
-            {
-                val = lambda2[cellI];
-                features_[modelName][idxI][cellI] = (val + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
         //包淳第二次添加的
         else if (inputName == "Spg")
         {
