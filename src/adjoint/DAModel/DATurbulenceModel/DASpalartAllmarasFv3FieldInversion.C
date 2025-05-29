@@ -263,8 +263,8 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
         else if (r[k]<0.0)
         {
         }
-       this->r_[k] = r[k];
-	   this->fw_[k] = fwv[k];
+       //this->r_[k] = r[k];
+	   //this->fw_[k] = fwv[k];
     }
 
     // tmp<volScalarField> fwvv
@@ -285,6 +285,25 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
 
     return fwv * 1.0;
     //return g * pow((1.0 + pow6(Cw3_)) / (pow6(g) + pow6(Cw3_)), 1.0 / 6.0);
+}
+tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f1() const
+{
+    const volScalarField chi(this->chi());
+    return
+    (
+        (chi-scalar(20))/(scalar(20)+chi)
+    );
+}
+
+tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f2() const
+{
+    const volScalarField Stilda(
+        ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
+        + this->fv2(chi, fv1) * nuTilda_ / sqr(kappa_ * y_));
+    return
+    (
+        (fw(Stilda)-scalar(1))/(scalar(1)+fw(Stilda))
+    );
 }
 
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::DnuTildaEff() const
