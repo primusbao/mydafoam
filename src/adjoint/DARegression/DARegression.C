@@ -370,7 +370,7 @@ void DARegression::calcInputFeatures(word modelName)
             const volScalarField& f1 = mesh_.thisDb().lookupObject<volScalarField>("f1");
             forAll(features_[modelName][idxI], cellI)
             {
-                features_[modelName][idxI][cellI] = (f1 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+                features_[modelName][idxI][cellI] = (f1[cellI] + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
@@ -379,7 +379,7 @@ void DARegression::calcInputFeatures(word modelName)
             const volScalarField& f2 = mesh_.thisDb().lookupObject<volScalarField>("f2");
             forAll(features_[modelName][idxI], cellI)
             {
-                features_[modelName][idxI][cellI] = (f2 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+                features_[modelName][idxI][cellI] = (f2[cellI] + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
@@ -388,7 +388,7 @@ void DARegression::calcInputFeatures(word modelName)
             const volScalarField& f3 = mesh_.thisDb().lookupObject<volScalarField>("f3");
             forAll(features_[modelName][idxI], cellI)
             {
-                features_[modelName][idxI][cellI] = (f3 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+                features_[modelName][idxI][cellI] = (f3[cellI] + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
@@ -397,7 +397,7 @@ void DARegression::calcInputFeatures(word modelName)
             const volScalarField& f4 = mesh_.thisDb().lookupObject<volScalarField>("f4");
             forAll(features_[modelName][idxI], cellI)
             {
-                features_[modelName][idxI][cellI] = (f4 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+                features_[modelName][idxI][cellI] = (f4[cellI] + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
