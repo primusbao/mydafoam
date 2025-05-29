@@ -123,10 +123,26 @@ DASpalartAllmarasFv3FieldInversion::DASpalartAllmarasFv3FieldInversion(
           mesh.thisDb().lookupObject<volScalarField>("pData"))),
       USingleComponentData_(const_cast<volScalarField&>(
           mesh.thisDb().lookupObject<volScalarField>("USingleComponentData"))),
-      r_(const_cast<volScalarField&>(
-          mesh.thisDb().lookupObject<volScalarField>("r"))),
-      fw_(const_cast<volScalarField&>(
-          mesh.thisDb().lookupObject<volScalarField>("fw"))),
+      r_(
+          IOobject(
+              "r",
+              mesh.time().timeName(),
+              mesh_,
+              IOobject::NO_READ,
+              IOobject::AUTO_WRITE),
+          mesh_,
+          dimensionedScalar("r", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+          zeroGradientFvPatchField<scalar>::typeName),
+      fw_(
+          IOobject(
+              "fw",
+              mesh.time().timeName(),
+              mesh_,
+              IOobject::NO_READ,
+              IOobject::AUTO_WRITE),
+          mesh_,
+          dimensionedScalar("fw", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+          zeroGradientFvPatchField<scalar>::typeName),
       y_(mesh.thisDb().lookupObject<volScalarField>("yWall"))
 {
 }
