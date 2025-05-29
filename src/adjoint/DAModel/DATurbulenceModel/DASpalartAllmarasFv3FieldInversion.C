@@ -311,16 +311,13 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f1() const
     );
 }
 
-// tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f2() const
-// {
-//     const volScalarField Stilda(
-//         ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
-//         + this->fv2(chi, fv1) * nuTilda_ / sqr(kappa_ * y_));
-//     return
-//     (
-//         (fw(Stilda)-scalar(1))/(scalar(1)+fw(Stilda))
-//     );
-// }
+tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f2() const
+{
+    return
+    (
+        (fw_-scalar(1))/(scalar(1)+fw_)
+    );
+}
 
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::DnuTildaEff() const
 {
