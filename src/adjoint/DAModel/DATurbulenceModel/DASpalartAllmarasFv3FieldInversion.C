@@ -282,10 +282,7 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
        //this->r_[k] = r[k];
 	   //this->fw_[k] = fwv[k];
     }
-    forAll(fw_, cellI)
-    {
-        fw_[cellI] = fwv[cellI];
-    }
+fw_=fwv*1.0;
 
     // tmp<volScalarField> fwvv
     // (
