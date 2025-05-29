@@ -364,29 +364,6 @@ void DARegression::calcInputFeatures(word modelName)
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
-        //包淳第三次添加
-        else if (inputName == "f1")
-        {
-            const volScalarField& nuTilda = mesh_.thisDb().lookupObject<volScalarField>("nuTilda");
-            volScalarField nu = daModel_.getDATurbulenceModel().nu();
-            scalar chi = 0;
-            forAll(features_[modelName][idxI], cellI)
-            {
-                chi = nuTilda[cellI] / nu[cellI];
-                features_[modelName][idxI][cellI] = ((chi-20) / (chi+20) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
-        else if (inputName == "f2")
-        {
-            const volScalarField& fw = mesh_.thisDb().lookupObject<volScalarField>("fw");
-            forAll(features_[modelName][idxI], cellI)
-            {
-                chi = nuTilda[cellI] / nu[cellI];
-                features_[modelName][idxI][cellI] = ((fw[cellI]-1.0) / (fw[cellI]+1.0) + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
-            }
-            features_[modelName][idxI].correctBoundaryConditions();
-        }
         else
         {
             FatalErrorIn("") << "inputName: " << inputName << " not supported. Options are: VoS, PoD, chiSA, pGradStream, PSoSS, SCurv, UOrth, KoU2, ReWall, CoP, TauoK" << abort(FatalError);
