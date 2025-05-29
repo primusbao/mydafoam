@@ -364,6 +364,43 @@ void DARegression::calcInputFeatures(word modelName)
             }
             features_[modelName][idxI].correctBoundaryConditions();
         }
+        //包淳第三次添加
+        else if (inputName == "f1")
+        {
+            const volScalarField& f1 = mesh_.thisDb().lookupObject<volScalarField>("f1");
+            forAll(features_[modelName][idxI], cellI)
+            {
+                features_[modelName][idxI][cellI] = (f1 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+            }
+            features_[modelName][idxI].correctBoundaryConditions();
+        }
+        else if (inputName == "f2")
+        {
+            const volScalarField& f2 = mesh_.thisDb().lookupObject<volScalarField>("f2");
+            forAll(features_[modelName][idxI], cellI)
+            {
+                features_[modelName][idxI][cellI] = (f2 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+            }
+            features_[modelName][idxI].correctBoundaryConditions();
+        }
+        else if (inputName == "f3")
+        {
+            const volScalarField& f3 = mesh_.thisDb().lookupObject<volScalarField>("f3");
+            forAll(features_[modelName][idxI], cellI)
+            {
+                features_[modelName][idxI][cellI] = (f3 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+            }
+            features_[modelName][idxI].correctBoundaryConditions();
+        }
+        else if (inputName == "f4")
+        {
+            const volScalarField& f4 = mesh_.thisDb().lookupObject<volScalarField>("f4");
+            forAll(features_[modelName][idxI], cellI)
+            {
+                features_[modelName][idxI][cellI] = (f4 + inputShift_[modelName][idxI]) * inputScale_[modelName][idxI];
+            }
+            features_[modelName][idxI].correctBoundaryConditions();
+        }
         else
         {
             FatalErrorIn("") << "inputName: " << inputName << " not supported. Options are: VoS, PoD, chiSA, pGradStream, PSoSS, SCurv, UOrth, KoU2, ReWall, CoP, TauoK" << abort(FatalError);
