@@ -89,6 +89,10 @@ protected:
 
     volScalarField r_;
     volScalarField fw_;
+    volScalarField f1_;
+    volScalarField f2_;
+    volScalarField f3_;
+    volScalarField f4_;
     //@}
 
     /// A coefficient Field
