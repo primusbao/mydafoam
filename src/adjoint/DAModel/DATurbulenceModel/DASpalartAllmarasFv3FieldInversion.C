@@ -338,7 +338,8 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f4() const
 
     return
     (
-        (mag(Cw1_*fw_*sqr(nuTilda_/y_))-scalar(5)*mag(Cb1_*nuTilda_))/ (scalar(5)*mag(Cb1_*nuTilda_) + mag(Cw1_*fw_*sqr(nuTilda_/y_)))
+        (mag(Cw1_*fw_*sqr(nuTilda_/y_))-scalar(5)*mag(Cb1_*nuTilda_))/ max ((scalar(5)*mag(Cb1_*nuTilda_) + mag(Cw1_*fw_*sqr(nuTilda_/y_))),
+                                          dimensionedScalar("SMALL",dimensionSet(0,2,-2,0,0,0,0), SMALL))
     );
 }
 
