@@ -333,14 +333,12 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f3() const
     );
 }
 
-tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f4(
-    const volScalarField& Stilda) const
+tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f4() const
 {  
 
     return
     (
-        (mag(Cw1_*fw_*sqr(nuTilda_/y_))-scalar(5)*mag(Cb1_*Stilda*nuTilda_))/ max ((scalar(5)*mag(Cb1_*Stilda*nuTilda_) + mag(Cw1_*fw_*sqr(nuTilda_/y_))),
-                                          dimensionedScalar(dimensionSet(0,2,-2,0,0,0,0), 1e-6))
+        mag(Cw1_*fw_*sqr(nuTilda_/y_))-scalar(5)*mag(Cb1_*nuTilda_)
     );
 }
 
