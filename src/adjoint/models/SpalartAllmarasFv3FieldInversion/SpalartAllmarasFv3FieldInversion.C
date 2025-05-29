@@ -155,26 +155,6 @@ SpalartAllmarasFv3FieldInversion<BasicTurbulenceModel>::SpalartAllmarasFv3FieldI
           this->mesh_,
           dimensionedScalar("USingleComponentData", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
           zeroGradientFvPatchField<scalar>::typeName),
-      r_(
-          IOobject(
-                "r",
-                this->runTime_.timeName(),
-                this->mesh_,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE),
-            this->mesh_,
-            dimensionedScalar("r", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
-            zeroGradientFvPatchField<scalar>::typeName),
-      fw_(
-            IOobject(
-                "fw",
-                this->runTime_.timeName(),
-                this->mesh_,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE),
-            this->mesh_,
-            dimensionedScalar("fw", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
-            zeroGradientFvPatchField<scalar>::typeName),
       Cw1_(
             IOobject(
                 "Cw1",
@@ -183,7 +163,7 @@ SpalartAllmarasFv3FieldInversion<BasicTurbulenceModel>::SpalartAllmarasFv3FieldI
                 IOobject::NO_READ,
                 IOobject::AUTO_WRITE),
             this->mesh_,
-            dimensionedScalar("fw", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+            dimensionedScalar("Cw1", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
             zeroGradientFvPatchField<scalar>::typeName),
       y_(wallDist::New(this->mesh_).y())
 {
