@@ -156,7 +156,7 @@ public:
     tmp<volScalarField> DnuTildaEff() const;
 
     //包淳新添加
-    //tmp<volScalarField> f1() const;
+    tmp<volScalarField> f1() const;
     //tmp<volScalarField> f2() const;
 
     /// update the turbulence state for DAStateInfo::regStates_
