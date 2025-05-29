@@ -143,6 +143,46 @@ DASpalartAllmarasFv3FieldInversion::DASpalartAllmarasFv3FieldInversion(
           mesh_,
           dimensionedScalar("fw", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
           zeroGradientFvPatchField<scalar>::typeName),
+      f1_(
+          IOobject(
+              "f1",
+              mesh.time().timeName(),
+              mesh_,
+              IOobject::NO_READ,
+              IOobject::AUTO_WRITE),
+          mesh_,
+          dimensionedScalar("f1", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+          zeroGradientFvPatchField<scalar>::typeName),
+      f2_(
+          IOobject(
+              "f2",
+              mesh.time().timeName(),
+              mesh_,
+              IOobject::NO_READ,
+              IOobject::AUTO_WRITE),
+          mesh_,
+          dimensionedScalar("f2", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+          zeroGradientFvPatchField<scalar>::typeName),
+      f3_(
+          IOobject(
+              "f3",
+              mesh.time().timeName(),
+              mesh_,
+              IOobject::NO_READ,
+              IOobject::AUTO_WRITE),
+          mesh_,
+          dimensionedScalar("f3", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+          zeroGradientFvPatchField<scalar>::typeName),
+      f4_(
+          IOobject(
+              "f4",
+              mesh.time().timeName(),
+              mesh_,
+              IOobject::NO_READ,
+              IOobject::AUTO_WRITE),
+          mesh_,
+          dimensionedScalar("f4", dimensionSet(0, 0, 0, 0, 0, 0, 0), 0.0),
+          zeroGradientFvPatchField<scalar>::typeName),
       y_(mesh.thisDb().lookupObject<volScalarField>("yWall"))
 {
 }
@@ -617,7 +657,7 @@ void DASpalartAllmarasFv3FieldInversion::calcResiduals(const dictionary& options
     const volScalarField Stilda(
         ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
         + this->fv2(chi, fv1) * nuTilda_ / sqr(kappa_ * y_));
-    fw_=fw(Stilda);
+    
     tmp<fvScalarMatrix> nuTildaEqn(
         fvm::ddt(phase_, rho_, nuTilda_)
             + fvm::div(phaseRhoPhi_, nuTilda_, divNuTildaScheme)
@@ -653,7 +693,11 @@ void DASpalartAllmarasFv3FieldInversion::calcResiduals(const dictionary& options
         // need to normalize residuals
         normalizeResiduals(nuTildaRes);
     }
-
+    fw_=fw(Stilda);
+    f1_ = f1();
+    f2_ = f2();
+    f3_ = f3();
+    f4_ = f4(Stilda);
     return;
 }
 
