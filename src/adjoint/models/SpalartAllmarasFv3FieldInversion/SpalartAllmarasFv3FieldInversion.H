@@ -60,10 +60,6 @@ protected:
 
     volScalarField USingleComponentData_;
 
-    volScalarField fw_;
-
-    volScalarField r_;
-
     volScalarField Cb1_;
 
     volScalarField sigmaNut_;
