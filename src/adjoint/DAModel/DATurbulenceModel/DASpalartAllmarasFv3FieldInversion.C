@@ -319,6 +319,31 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f2() const
     );
 }
 
+tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f3() const
+{   
+    const volScalarField nu(this->nu());
+    const volScalarField Omega
+    (
+        ::sqrt(scalar(2))*mag(skew(fvc::grad(this->U_)))
+    );
+    const volScalarField y(wallDist(this->mesh_).y());
+    return
+    (
+        (pow(y,2)*Omega-scalar(100) * nu) / (pow(y,2)*Omega + scalar(100) * nu)
+    );
+}
+
+tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::f4() const
+{   
+    const volScalarField Stilda(this->Stilda());
+
+    return
+    (
+        (mag(Cw1_*fw_*sqr(nuTilda_/y_))-scalar(5)*mag(Cb1_*Stilda*nuTilda_))/ max ((scalar(5)*mag(Cb1_*Stilda*nuTilda_) + mag(Cw1_*fw_*sqr(nuTilda_/y_))),
+                                          dimensionedScalar(dimensionSet(0,2,-2,0,0,0,0), 1e-6))
+    );
+}
+
 tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::DnuTildaEff() const
 {
     return tmp<volScalarField>(
