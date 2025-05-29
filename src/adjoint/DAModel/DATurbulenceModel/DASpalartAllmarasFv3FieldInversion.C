@@ -279,6 +279,12 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
         else if (r[k]<0.0)
         {
         }
+       //this->r_[k] = r[k];
+	   //this->fw_[k] = fwv[k];
+    }
+    forAll(fw_, cellI)
+    {
+        fw_[cellI] = fwv[cellI];
     }
 
     // tmp<volScalarField> fwvv
