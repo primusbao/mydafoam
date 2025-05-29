@@ -282,7 +282,6 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
        //this->r_[k] = r[k];
 	   //this->fw_[k] = fwv[k];
     }
-fw_=fwv*1.0;
 
     // tmp<volScalarField> fwvv
     // (
@@ -598,7 +597,7 @@ void DASpalartAllmarasFv3FieldInversion::calcResiduals(const dictionary& options
     const volScalarField Stilda(
         ::sqrt(2.0) * mag(skew(fvc::grad(U_)))
         + this->fv2(chi, fv1) * nuTilda_ / sqr(kappa_ * y_));
-
+    fw_=fw(Stilda);
     tmp<fvScalarMatrix> nuTildaEqn(
         fvm::ddt(phase_, rho_, nuTilda_)
             + fvm::div(phaseRhoPhi_, nuTilda_, divNuTildaScheme)
