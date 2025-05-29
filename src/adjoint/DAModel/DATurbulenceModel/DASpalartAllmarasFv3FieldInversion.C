@@ -280,7 +280,6 @@ tmp<volScalarField> DASpalartAllmarasFv3FieldInversion::fw(
         {
         }
     }
-	r_=r;
 
     // tmp<volScalarField> fwvv
     // (
