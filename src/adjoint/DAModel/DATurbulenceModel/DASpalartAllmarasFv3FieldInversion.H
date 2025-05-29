@@ -158,6 +158,8 @@ public:
     //包淳新添加
     tmp<volScalarField> f1() const;
     tmp<volScalarField> f2() const;
+    tmp<volScalarField> f3() const;
+    tmp<volScalarField> f4() const;
 
     /// update the turbulence state for DAStateInfo::regStates_
     virtual void correctModelStates(wordList& modelStates) const;
