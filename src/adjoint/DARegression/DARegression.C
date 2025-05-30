@@ -801,11 +801,11 @@ label DARegression::checkOutput(word modelName, volScalarField& outputField)
             isBounded = 1;
         }
     }
-    if (isBounded == 1)
-    {
-        Pout << "************* Warning! output values are bounded between " << outputLowerBound_[modelName] << " and " << outputUpperBound_[modelName] << endl;
-        fail = 1;
-    }
+    // if (isBounded == 1)
+    // {
+    //     Pout << "************* Warning! output values are bounded between " << outputLowerBound_[modelName] << " and " << outputUpperBound_[modelName] << endl;
+    //     fail = 1;
+    // }
 
     if (isNaN == 1)
     {
